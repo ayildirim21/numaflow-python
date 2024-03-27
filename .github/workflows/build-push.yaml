@@ -1,7 +1,7 @@
 name: Docker Publish
 
 on:
-  push:
+  pull_request:
     branches: [ main ]
     tags:
       - '*'
@@ -10,7 +10,7 @@ jobs:
   docker_publish:
     # run it only on numaproj/numaflow-python repository
     # forked repositories normally don't have the proper permission setup.
-    if: ${{ github.repository }} == "numaproj/numaflow-python"
+    # if: ${{ github.repository }} == "numaproj/numaflow-python"
     name: Build, Tag, and Push Image
     runs-on: ubuntu-latest
 
