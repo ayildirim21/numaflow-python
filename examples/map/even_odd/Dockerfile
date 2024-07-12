@@ -52,3 +52,5 @@ ENTRYPOINT ["/dumb-init", "--"]
 CMD ["sh", "-c", "$EXAMPLE_PATH/entry.sh"]
 
 EXPOSE 5000
+
+

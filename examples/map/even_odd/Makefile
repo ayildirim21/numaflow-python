@@ -1,6 +1,6 @@
 TAG ?= stable
 PUSH ?= false
-IMAGE_REGISTRY = quay.io/numaio/numaflow-python/even-odd:${TAG}
+IMAGE_REGISTRY = quay.io/a3hadi/numaflow-python/even-odd:${TAG}
 DOCKER_FILE_PATH = examples/map/even_odd/Dockerfile
 
 .PHONY: update
