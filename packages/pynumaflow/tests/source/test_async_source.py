@@ -20,6 +20,8 @@ from tests.source.utils import (
     AsyncSourceWithTotalPartitions,
     mock_offset,
     nack_req_source_fn,
+    nack_req_source_fn_with_options,
+    RECEIVED_NACK_REQUESTS,
 )
 
 pytestmark = pytest.mark.integration
@@ -167,6 +169,33 @@ def test_nack(async_source_server) -> None:
         request = nack_req_source_fn()
         response = stub.NackFn(request=request)
         assert response.result.success
+
+
+def test_nack_without_options(async_source_server) -> None:
+    RECEIVED_NACK_REQUESTS.clear()
+    with grpc.insecure_channel(server_port) as channel:
+        stub = source_pb2_grpc.SourceStub(channel)
+        response = stub.NackFn(request=nack_req_source_fn())
+        assert response.result.success
+
+    assert len(RECEIVED_NACK_REQUESTS) == 1
+    # No nack_options were sent, so the handler should receive None.
+    assert RECEIVED_NACK_REQUESTS[0].nack_options is None
+
+
+def test_nack_with_options(async_source_server) -> None:
+    RECEIVED_NACK_REQUESTS.clear()
+    with grpc.insecure_channel(server_port) as channel:
+        stub = source_pb2_grpc.SourceStub(channel)
+        response = stub.NackFn(request=nack_req_source_fn_with_options())
+        assert response.result.success
+
+    assert len(RECEIVED_NACK_REQUESTS) == 1
+    opts = RECEIVED_NACK_REQUESTS[0].nack_options
+    assert opts is not None
+    assert opts.delay == 1000
+    assert opts.max_deliveries == 3
+    assert opts.reason == "retry"
 
 
 def test_pending(async_source_server) -> None:

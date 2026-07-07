@@ -16,7 +16,8 @@ from pynumaflow.mapper.async_server import MapAsyncServer
 from pynumaflow.proto.common import metadata_pb2
 from pynumaflow.proto.mapper import map_pb2, map_pb2_grpc
 from tests.conftest import create_async_loop, start_async_server, teardown_async_server
-from tests.map.utils import get_test_datums
+from tests.map.utils import get_test_datums, async_nack_map_handler, NACK_TEST_OPTIONS
+from pynumaflow._constants import NACK
 
 pytestmark = pytest.mark.integration
 
@@ -26,6 +27,7 @@ LOGGER = setup_logging(__name__)
 raise_error_from_map = False
 
 SOCK_PATH = "unix:///tmp/async_map.sock"
+NACK_SOCK_PATH = "unix:///tmp/async_map_nack.sock"
 
 
 def request_generator(req):
@@ -104,6 +106,54 @@ def test_run_server(async_map_server):
             assert len(responses[idx].results) == 1
             idx += 1
         LOGGER.info("Successfully validated the server")
+
+
+async def _start_nack_server(udfs):
+    _server_options = [
+        ("grpc.max_send_message_length", MAX_MESSAGE_SIZE),
+        ("grpc.max_receive_message_length", MAX_MESSAGE_SIZE),
+    ]
+    server = grpc.aio.server(options=_server_options)
+    map_pb2_grpc.add_MapServicer_to_server(udfs, server)
+    server.add_insecure_port(NACK_SOCK_PATH)
+    logging.info("Starting nack server on %s", NACK_SOCK_PATH)
+    await server.start()
+    return server, NACK_SOCK_PATH
+
+
+@pytest.fixture(scope="module")
+def async_nack_map_server():
+    """Module-scoped fixture: async gRPC map server whose handler nacks every message."""
+    loop = create_async_loop()
+
+    server_obj = MapAsyncServer(mapper_instance=async_nack_map_handler)
+    udfs = server_obj.servicer
+    server = start_async_server(loop, _start_nack_server(udfs))
+
+    yield loop
+
+    teardown_async_server(loop, server)
+
+
+def test_map_nack(async_nack_map_server):
+    with grpc.insecure_channel(NACK_SOCK_PATH) as channel:
+        stub = map_pb2_grpc.MapStub(channel)
+        request = get_test_datums()
+        generator_response = stub.MapFn(request_iterator=request_generator(request))
+
+        responses = list(generator_response)
+
+    # 1 handshake + 3 data responses
+    assert len(responses) == 4
+    assert responses[0].handshake.sot
+
+    for resp in responses[1:]:
+        assert len(resp.results) == 1
+        result = resp.results[0]
+        assert NACK in result.tags
+        assert result.nack_options.delay == NACK_TEST_OPTIONS.delay
+        assert result.nack_options.max_deliveries == NACK_TEST_OPTIONS.max_deliveries
+        assert result.nack_options.reason == NACK_TEST_OPTIONS.reason
 
 
 def test_map(map_stub):

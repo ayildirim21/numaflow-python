@@ -5,6 +5,8 @@ from pynumaflow.sourcer import (
     Offset,
     ReadRequest,
     PartitionsResponse,
+    NackRequest,
+    NackOptions,
 )
 from tests.source.utils import mock_offset
 from tests.testing_utils import mock_event_time
@@ -50,6 +52,21 @@ def test_err_num_record():
 def test_err_timeout():
     with pytest.raises(TypeError, match="Wrong data type"):
         ReadRequest(num_records=1, timeout_in_ms="1000")
+
+
+def test_nack_request_default_options():
+    offsets = [mock_offset()]
+    req = NackRequest(offsets=offsets)
+    assert req.offsets == offsets
+    assert req.nack_options is None
+
+
+def test_nack_request_with_options():
+    offsets = [mock_offset()]
+    opts = NackOptions(max_deliveries=3, delay=1000, reason="retry")
+    req = NackRequest(offsets=offsets, nack_options=opts)
+    assert req.offsets == offsets
+    assert req.nack_options == opts
 
 
 def test_partition_response():

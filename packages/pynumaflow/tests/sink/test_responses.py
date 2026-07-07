@@ -1,6 +1,14 @@
 from collections.abc import Iterator
 
-from pynumaflow.sinker import Response, Responses, Sinker, Datum, Message, UserMetadata
+from pynumaflow.sinker import (
+    Response,
+    Responses,
+    Sinker,
+    Datum,
+    Message,
+    UserMetadata,
+    NackOptions,
+)
 
 
 def test_as_success():
@@ -24,6 +32,26 @@ def test_as_on_success():
     assert not _response.success
     assert not _response.fallback
     assert _response.on_success
+
+
+def test_as_nack():
+    opts = NackOptions(max_deliveries=3, delay=1000, reason="downstream down")
+    _response = Response.as_nack("8", opts)
+    assert _response.id == "8"
+    assert _response.nack
+    assert _response.nack_options == opts
+    assert not _response.success
+    assert not _response.fallback
+    assert not _response.on_success
+    assert _response.err is None
+    assert _response.on_success_msg is None
+
+
+def test_as_nack_default_opts():
+    _response = Response.as_nack("9")
+    assert _response.nack
+    assert _response.nack_options is None
+    assert not _response.success
 
 
 def test_responses():
