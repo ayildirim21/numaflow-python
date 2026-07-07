@@ -4,7 +4,6 @@ from pynumaflow.proto.mapper import map_pb2
 from pynumaflow.mapper import Datum, Messages, Message, Mapper, NackOptions
 from tests.testing_utils import mock_message, mock_headers, get_time_args
 
-
 # NackOptions used by the nack handlers below; also asserted by the round-trip tests.
 NACK_TEST_OPTIONS = NackOptions(delay=1000, max_deliveries=3, reason="retry")
 

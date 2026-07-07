@@ -12,7 +12,6 @@ from pynumaflow.proto.sourcer import source_pb2
 from pynumaflow.proto.common import nack_options_pb2
 from tests.testing_utils import mock_event_time
 
-
 # Records NackRequests received by AsyncSource.nack_handler so tests can assert
 # that nack_options sent over the wire are decoded and delivered to the handler.
 RECEIVED_NACK_REQUESTS: list[NackRequest] = []

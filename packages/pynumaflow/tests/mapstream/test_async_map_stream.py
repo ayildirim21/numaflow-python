@@ -111,16 +111,16 @@ def test_map_stream(map_stream_stub):
         result_msg_count += 1
 
     # Validate totals
-    assert result_msg_count == expected_result_msgs, (
-        f"Expected {expected_result_msgs} result messages, got {result_msg_count}"
-    )
+    assert (
+        result_msg_count == expected_result_msgs
+    ), f"Expected {expected_result_msgs} result messages, got {result_msg_count}"
     assert eot_count == expected_eots, f"Expected {expected_eots} EOT messages, got {eot_count}"
 
     # Validate 10 messages per request id: test-id-0..test-id-(req_count-1)
     for i in range(req_count):
-        assert id_counter[f"test-id-{i}"] == 10, (
-            f"Expected 10 results for test-id-{i}, got {id_counter[f'test-id-{i}']}"
-        )
+        assert (
+            id_counter[f"test-id-{i}"] == 10
+        ), f"Expected 10 results for test-id-{i}, got {id_counter[f'test-id-{i}']}"
 
 
 async def async_nack_map_stream_handler(keys: list[str], datum: Datum) -> AsyncIterable[Message]:
