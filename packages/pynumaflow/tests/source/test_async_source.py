@@ -179,8 +179,10 @@ def test_nack_without_options(async_source_server) -> None:
         assert response.result.success
 
     assert len(RECEIVED_NACK_REQUESTS) == 1
+    nack_offsets = RECEIVED_NACK_REQUESTS[0].nack_offsets
+    assert len(nack_offsets) == 1
     # No nack_options were sent, so the handler should receive None.
-    assert RECEIVED_NACK_REQUESTS[0].nack_options is None
+    assert nack_offsets[0].nack_options is None
 
 
 def test_nack_with_options(async_source_server) -> None:
@@ -191,7 +193,9 @@ def test_nack_with_options(async_source_server) -> None:
         assert response.result.success
 
     assert len(RECEIVED_NACK_REQUESTS) == 1
-    opts = RECEIVED_NACK_REQUESTS[0].nack_options
+    nack_offsets = RECEIVED_NACK_REQUESTS[0].nack_offsets
+    assert len(nack_offsets) == 1
+    opts = nack_offsets[0].nack_options
     assert opts is not None
     assert opts.delay == 1000
     assert opts.max_deliveries == 3

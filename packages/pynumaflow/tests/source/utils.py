@@ -111,7 +111,7 @@ def ack_req_source_fn():
 def nack_req_source_fn():
     msg = source_pb2.Offset(offset=mock_offset().offset, partition_id=mock_offset().partition_id)
     request = source_pb2.NackRequest.Request(offsets=[msg])
-    return source_pb2.NackRequest(request=request)
+    return source_pb2.NackRequest(request=[request])
 
 
 def nack_req_source_fn_with_options():
@@ -120,7 +120,7 @@ def nack_req_source_fn_with_options():
         offsets=[msg],
         nack_options=nack_options_pb2.NackOptions(delay=1000, max_deliveries=3, reason="retry"),
     )
-    return source_pb2.NackRequest(request=request)
+    return source_pb2.NackRequest(request=[request])
 
 
 class AsyncSourceError(Sourcer):

@@ -6,6 +6,7 @@ from pynumaflow.sourcer import (
     ReadRequest,
     PartitionsResponse,
     NackRequest,
+    NackOffset,
     NackOptions,
 )
 from tests.source.utils import mock_offset
@@ -54,19 +55,36 @@ def test_err_timeout():
         ReadRequest(num_records=1, timeout_in_ms="1000")
 
 
+def test_nack_offset_default_options():
+    offset = mock_offset()
+    nack_offset = NackOffset(offset=offset)
+    assert nack_offset.offset == offset
+    assert nack_offset.nack_options is None
+
+
+def test_nack_offset_with_options():
+    offset = mock_offset()
+    opts = NackOptions(max_deliveries=3, delay=1000, reason="retry")
+    nack_offset = NackOffset(offset=offset, nack_options=opts)
+    assert nack_offset.offset == offset
+    assert nack_offset.nack_options == opts
+
+
 def test_nack_request_default_options():
-    offsets = [mock_offset()]
-    req = NackRequest(offsets=offsets)
-    assert req.offsets == offsets
-    assert req.nack_options is None
+    offset = mock_offset()
+    req = NackRequest(nack_offsets=[NackOffset(offset=offset)])
+    assert len(req.nack_offsets) == 1
+    assert req.nack_offsets[0].offset == offset
+    assert req.nack_offsets[0].nack_options is None
 
 
 def test_nack_request_with_options():
-    offsets = [mock_offset()]
+    offset = mock_offset()
     opts = NackOptions(max_deliveries=3, delay=1000, reason="retry")
-    req = NackRequest(offsets=offsets, nack_options=opts)
-    assert req.offsets == offsets
-    assert req.nack_options == opts
+    req = NackRequest(nack_offsets=[NackOffset(offset=offset, nack_options=opts)])
+    assert len(req.nack_offsets) == 1
+    assert req.nack_offsets[0].offset == offset
+    assert req.nack_offsets[0].nack_options == opts
 
 
 def test_partition_response():

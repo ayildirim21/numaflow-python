@@ -125,8 +125,8 @@ class NackRequest(_message.Message):
         nack_options: _nack_options_pb2.NackOptions
         def __init__(self, offsets: _Optional[_Iterable[_Union[Offset, _Mapping]]] = ..., nack_options: _Optional[_Union[_nack_options_pb2.NackOptions, _Mapping]] = ...) -> None: ...
     REQUEST_FIELD_NUMBER: _ClassVar[int]
-    request: NackRequest.Request
-    def __init__(self, request: _Optional[_Union[NackRequest.Request, _Mapping]] = ...) -> None: ...
+    request: _containers.RepeatedCompositeFieldContainer[NackRequest.Request]
+    def __init__(self, request: _Optional[_Iterable[_Union[NackRequest.Request, _Mapping]]] = ...) -> None: ...
 
 class NackResponse(_message.Message):
     __slots__ = ("result",)
