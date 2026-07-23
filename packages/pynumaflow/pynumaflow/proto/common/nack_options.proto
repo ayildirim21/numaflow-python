@@ -10,4 +10,8 @@ message NackOptions {
   optional uint32 max_deliveries = 2;
   // delay is the redelivery delay in milliseconds.
   optional uint64 delay = 3;
+  // nack_map is a generic map of string key-value pairs used to pass
+  // properties/configurations for nacking back to the source (e.g. for
+  // sources like SQS, Pulsar or JetStream that support NACK).
+  map<string, string> nack_map = 4;
 }
